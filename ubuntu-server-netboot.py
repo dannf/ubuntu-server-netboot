@@ -31,6 +31,21 @@ import urllib.request
 Netboot_Args = "root=/dev/ram0 ramdisk_size=1500000 ip=dhcp"
 
 
+class UbuntuDistroInfoWithVersionSupport(distro_info.UbuntuDistroInfo):
+    '''
+    The version() method wasn't supported by distro_info until
+    version 0.23, which is newer than some supported releases
+    ship (Ubuntu 18.04 currently has 0.18). Extend the class
+    to provide our own copy for backwards compatibility.
+    '''
+    def version(self, name, default=None):
+        """Map codename or series to version"""
+        for release in self._releases:
+            if name in (release.codename, release.series):
+                return release.version
+        return default
+
+
 class ServerLiveIso:
     def __init__(self, iso_path):
         self.path = iso_path
@@ -56,7 +71,7 @@ class ServerLiveIso:
         self.version = m.group("release")
         if m.group("lts"):
             self.version = self.version + m.group("lts")
-        udi = distro_info.UbuntuDistroInfo()
+        udi = UbuntuDistroInfoWithVersionSupport()
         for codename in udi.supported():
             if self.version != udi.version(codename):
                 continue
