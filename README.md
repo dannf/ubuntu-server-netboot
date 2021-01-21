@@ -16,3 +16,12 @@ The `--url` parameter is used for 2 reasons:
 If you have a local copy of the ISO, you can point to it with the `--iso` parameter to avoid having `ubuntu-server-netboot.py` download an extra copy. Just be sure that `--iso` and `--url` point to the same version of the ISO.
 
 You can also add additional kernel command line arguments (e.g. `"console=ttyS0"`) to the generated configuration files using the `--extra-args` parameter.
+
+## Dependencies
+Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivative with the following packages installed:
+
+ - genisoimage
+ - mtools
+ - python3-distro-info
+ - pxelinux (x86-only)
+ - syslinux-common (x86-only)
