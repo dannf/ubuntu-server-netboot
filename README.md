@@ -25,3 +25,8 @@ Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivativ
  - python3-distro-info
  - pxelinux (x86-only)
  - syslinux-common (x86-only)
+
+## Contribution
+
+Please report bugs to [this github issue tracker](https://github.com/dannf/ubuntu-server-netboot/issues). The github templates including "Issue" and "Pull requests" are originally forked from [this "cookiecutter" templates for python](https://github.com/Lee-W/cookiecutter-python-template).
+
