@@ -130,7 +130,7 @@ Ubuntu_Arch_to_Uefi_Arch_Abbrev = {
 def download_bootnet(release, architecture, destdir):
     uefi_arch_abbrev = Ubuntu_Arch_to_Uefi_Arch_Abbrev[architecture]
     for pocket in ["%s-updates" % (release), release]:
-        url = "%s/dists/%s/main/uefi/grub2-%s/current/grub%s.efi.signed" % (
+        url = "%s/dists/%s/main/uefi/grub2-%s/current/grubnet%s.efi.signed" % (
             select_mirror(architecture),
             pocket,
             architecture,
