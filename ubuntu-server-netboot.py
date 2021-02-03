@@ -78,11 +78,31 @@ class ServerLiveIso:
             self.codename = codename
             break
 
+    def has_file(self, path):
+        for entry in subprocess.check_output(
+                ["isoinfo", "-J", "-f", "-i", self.path]
+        ).decode('utf-8').split('\n'):
+            if entry.lstrip('/') == path.lstrip('/'):
+                return True
+        return False
+
     def extract_file(self, path, dest):
+        # isoinfo reports success extracting a file even if it doesn't
+        # exist, so let's check that it exists before proceeding
+        if not self.has_file(path):
+            raise FileNotFoundError(
+                "%s not found on Ubuntu Server ISO" % (path)
+            )
+
         with open(dest, "w") as outf:
-            subprocess.Popen(
+            child = subprocess.Popen(
                 ["isoinfo", "-J", "-i", self.path, "-x", path],
                 stdout=outf,
+            )
+            child.communicate()
+        if child.returncode != 0:
+            raise Exception(
+                "Error extracting %s from Ubuntu Server ISO" % (path)
             )
 
     def read_file(self, path):
@@ -216,6 +236,15 @@ if __name__ == "__main__":
             os.path.join(os.sep, "casper", f),
             os.path.join(staging_dir, "casper", f),
         )
+    try:
+        for hwe_f in ["hwe-vmlinuz", "hwe-initrd"]:
+            iso.extract_file(
+                os.path.join(os.sep, "casper", hwe_f),
+                os.path.join(staging_dir, "casper", hwe_f),
+            )
+    except FileNotFoundError:
+        logger.info("No HWE boot files found, skipping")
+        pass
 
     grub_cfg_orig = iso.read_file(
         os.path.join(os.sep, "boot", "grub", "grub.cfg")
