@@ -17,6 +17,22 @@ If you have a local copy of the ISO, you can point to it with the `--iso` parame
 
 You can also add additional kernel command line arguments (e.g. `"console=ttyS0"`) to the generated configuration files using the `--extra-args` parameter.
 
+## Usage
+Copy the files generated under the interim folder `/tmp/tmpxxx/ubuntu-installer/`
+to your tftp root folder for netboot, for example `/var/lib/tftpboot`:
+
+```
+$ sudo cp /tmp/tmpxxx/ubuntu-installer/* /var/lib/tftpboot/
+```
+
+Then your netboot server is ready to go if the corresponding DHCP is set up.
+
+## Troubleshooting
+Please note that this tool is used in lab setup like
+[the setup described in this discourse post](https://discourse.ubuntu.com/t/netbooting-the-live-server-installer-via-uefi-pxe-on-arm-aarch64-arm64-and-x86-64-amd64/19240)
+to prepare a UEFI PEX server. It's suggested to check the details for your whole lab setup by reading the discourse
+post for trouble-shooting.
+
 ## Dependencies
 Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivative with the following packages installed:
 
@@ -25,6 +41,8 @@ Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivativ
  - python3-distro-info
  - pxelinux (x86-only)
  - syslinux-common (x86-only)
+
+This script is tested with Ubuntu 18.04 ("bionic beaver") and above.
 
 ## Contribution
 
