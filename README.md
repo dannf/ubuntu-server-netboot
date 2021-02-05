@@ -28,7 +28,7 @@ $ sudo cp /tmp/tmpxxx/ubuntu-installer/* /var/lib/tftpboot/
 Then your netboot server is ready to go if the corresponding DHCP is set up.
 
 ## Troubleshooting
-For more details on setting up a PXE environment for UEFI-based systems, see [this discourse post](https://discourse.ubuntu.com/t/netbooting-the-live-server-installer-via-uefi-pxe-on-arm-aarch64-arm64-and-x86-64-amd64/19240)
+For more details on setting up a PXE environment for UEFI-based systems, see [this discourse post](https://discourse.ubuntu.com/t/netbooting-the-live-server-installer-via-uefi-pxe-on-arm-aarch64-arm64-and-x86-64-amd64/19240).
 
 ## Dependencies
 Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivative with the following packages installed:
