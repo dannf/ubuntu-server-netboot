@@ -30,7 +30,7 @@ Then your netboot server is ready to go if the corresponding DHCP is set up.
 ## Troubleshooting
 Please note that this tool is used in lab setup like
 [the setup described in this discourse post](https://discourse.ubuntu.com/t/netbooting-the-live-server-installer-via-uefi-pxe-on-arm-aarch64-arm64-and-x86-64-amd64/19240)
-to prepare a UEFI PEX server. It's suggested to check the details for your whole lab setup by reading the discourse
+to prepare a UEFI PXE server. It's suggested to check the details for your whole lab setup by reading the discourse
 post for trouble-shooting.
 
 ## Dependencies
