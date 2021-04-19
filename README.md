@@ -20,12 +20,13 @@ Introduction of Ubuntu Server guide](Automated Server Installs Introduction) for
 
 You can also add additional kernel command line arguments (e.g. `"console=ttyS0"`) to the generated configuration files using the `--extra-args` parameter.
 
-## Usage
+## Usage of the Generated Files
 Copy the files generated under the interim folder `/tmp/tmpxxx/ubuntu-installer/`
-to your tftp root folder for netboot, for example `/var/lib/tftpboot`:
+to your tftp root folder for netboot, for example `/srv/tftp` or `/var/lib/tftpboot`.
+You may check your tftpd configuration of the root directory, for instance, tftpd-hpa is `/etc/default/tftpd-hpa`. Let's copy:
 
 ```
-$ sudo cp /tmp/tmpxxx/ubuntu-installer/* /var/lib/tftpboot/
+$ sudo cp -r /tmp/tmpxxx/ubuntu-installer/* /srv/tftp
 ```
 
 Then your netboot server is ready to go if the corresponding DHCP is set up.
