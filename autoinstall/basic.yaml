@@ -1,0 +1,14 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ubuntu-server
+    # The password hash maps to "ubuntu".
+    # See the example of Ubuntu Server guide https://ubuntu.com/server/docs/install/autoinstall-quickstart
+    #
+    # You may generate your own password by:
+    #   mkpasswd --method=SHA-512 --rounds=4096
+    # Refer to the document of cloudinit for generating password
+    # https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+    username: ubuntu

@@ -205,6 +205,10 @@ if __name__ == "__main__":
         help="URL to Server Live ISO to be downloaded at install-time",
         required=True,
     )
+    parser.add_argument(
+        "--autoinstall-url",
+        help="URL to Autoinstall config file to be used during Subiquity installation",
+    )
 
     args = parser.parse_args()
     if args.iso:
@@ -251,7 +255,12 @@ if __name__ == "__main__":
     )
     os.mkdir(os.path.join(staging_dir, "grub"))
     with open(os.path.join(staging_dir, "grub", "grub.cfg"), "w") as grub_cfg:
-        netboot_args = "%s url=%s" % (Netboot_Args, args.url)
+        if args.autoinstall_url:
+            autoinstall_args = f'"ds=nocloud-net;s={args.autoinstall_url}"'
+            netboot_args = "%s url=%s autoinstall %s" % (Netboot_Args, args.url, autoinstall_args)
+        else:
+            netboot_args = "%s url=%s" % (Netboot_Args, args.url)
+
         for line in grub_cfg_orig.decode("utf-8").split("\n"):
             index = line.find("---")
             if index != -1:
@@ -289,9 +298,15 @@ if __name__ == "__main__":
             pxelinux_cfg.write("LABEL install\n")
             pxelinux_cfg.write("  KERNEL casper/vmlinuz\n")
             pxelinux_cfg.write("  INITRD casper/initrd\n")
-            pxelinux_cfg.write(
-                "  APPEND %s url=%s ---" % (Netboot_Args, args.url)
-            )
+            if args.autoinstall_url:
+                autoinstall_args = f'"ds=nocloud-net;s={args.autoinstall_url}"'
+                pxelinux_cfg.write(
+                    "  APPEND %s url=%s autoinstall %s ---" % (Netboot_Args, args.url, autoinstall_args)
+                )
+            else:
+                pxelinux_cfg.write(
+                    "  APPEND %s url=%s ---" % (Netboot_Args, args.url)
+                )
             if args.extra_args:
                 pxelinux_cfg.write(" %s" % (args.extra_args))
             pxelinux_cfg.write("\n")
