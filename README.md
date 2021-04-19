@@ -15,6 +15,9 @@ The `--url` parameter is used for 2 reasons:
 
 If you have a local copy of the ISO, you can point to it with the `--iso` parameter to avoid having `ubuntu-server-netboot.py` download an extra copy. Just be sure that `--iso` and `--url` point to the same version of the ISO.
 
+Optionally, you can place `--autoinstall-url` to tell the netbooting process to enable subiquity automation. See [our autoinstall example](./autoinstall/README.md) and [the autoinstall and Automated Server Installs
+Introduction of Ubuntu Server guide](Automated Server Installs Introduction) for more details.
+
 You can also add additional kernel command line arguments (e.g. `"console=ttyS0"`) to the generated configuration files using the `--extra-args` parameter.
 
 ## Usage
