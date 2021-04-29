@@ -28,7 +28,7 @@ import sys
 import tempfile
 import urllib.request
 
-Netboot_Args = "root=/dev/ram0 ramdisk_size=1500000 ip=dhcp"
+Netboot_Args = ["root=/dev/ram0", "ramdisk_size=1500000", "ip=dhcp"]
 
 
 class UbuntuDistroInfoWithVersionSupport(distro_info.UbuntuDistroInfo):
@@ -111,6 +111,51 @@ class ServerLiveIso:
         )
 
 
+class BootloaderConfig:
+    """
+    A base class that can be overridden for specific bootloaders
+    """
+    def add_kernel_params(self, params, install_only=False):
+        new_cfg = ""
+        for line in self.cfg.split("\n"):
+            index = line.find("---")
+            if index != -1:
+                param_str = " ".join(params)
+                if install_only:
+                    replace = "%s ---" % (param_str)
+                else:
+                    replace = "--- %s" % (param_str)
+                line = line.replace("---", replace)
+            new_cfg += "%s\n" % (line)
+        self.cfg = new_cfg
+
+    def __str__(self):
+        return(self.cfg)
+
+
+class GrubConfig(BootloaderConfig):
+    '''
+    This BootloaderConfig subclass for GRUB takes a seedcfg - the
+    grub.cfg scraped from the ISO - and modifies it from there.
+    '''
+    def __init__(self, seedcfg):
+        self.cfg = seedcfg
+
+
+class PxelinuxConfig(BootloaderConfig):
+    '''
+    This BootloaderConfig subclass for pxelinux needs to generate
+    a starting config. Unlike for GRUB, there's no file to use as
+    a seed on the ISO.
+    '''
+    def __init__(self):
+        self.cfg = """DEFAULT install
+LABEL install
+  KERNEL casper/vmlinuz
+  INITRD casper/initrd
+  APPEND ---"""
+
+
 def select_mirror(arch):
     # FIXME: When I try to use https, I get:
     # urllib.error.URLError:
@@ -167,6 +212,22 @@ def download_pxelinux(release, destdir):
             # Assuming a 404
             continue
     raise Exception("Could not download %s" % (url))
+
+
+def setup_kernel_params(bootloader_cfg):
+    bootloader_cfg.add_kernel_params(
+        Netboot_Args + ["url=%s" % (args.url)],
+        install_only=True
+    )
+    if args.autoinstall_url:
+        bootloader_cfg.add_kernel_params(
+            [
+                "ds=nocloud-net;s=%s" % (args.autoinstall_url),
+            ],
+            install_only=True
+        )
+    if args.extra_args:
+        bootloader_cfg.add_kernel_params(args.extra_args.split(" "))
 
 
 def cleanup(directory):
@@ -253,21 +314,12 @@ if __name__ == "__main__":
     grub_cfg_orig = iso.read_file(
         os.path.join(os.sep, "boot", "grub", "grub.cfg")
     )
-    os.mkdir(os.path.join(staging_dir, "grub"))
-    with open(os.path.join(staging_dir, "grub", "grub.cfg"), "w") as grub_cfg:
-        if args.autoinstall_url:
-            autoinstall_args = f'"ds=nocloud-net;s={args.autoinstall_url}"'
-            netboot_args = "%s url=%s autoinstall %s" % (Netboot_Args, args.url, autoinstall_args)
-        else:
-            netboot_args = "%s url=%s" % (Netboot_Args, args.url)
+    grub_cfg = GrubConfig(grub_cfg_orig.decode("utf-8"))
+    setup_kernel_params(grub_cfg)
 
-        for line in grub_cfg_orig.decode("utf-8").split("\n"):
-            index = line.find("---")
-            if index != -1:
-                line = "%s%s %s" % (line[:index], netboot_args, line[index:])
-                if args.extra_args:
-                    line = "%s %s" % (line, args.extra_args)
-            grub_cfg.write(line + "\n")
+    os.mkdir(os.path.join(staging_dir, "grub"))
+    with open(os.path.join(staging_dir, "grub", "grub.cfg"), "w") as grub_f:
+        grub_f.write(str(grub_cfg))
 
     if architecture == "amd64":
         local_files = [
@@ -293,22 +345,10 @@ if __name__ == "__main__":
 
         pxelinux_dir = os.path.join(staging_dir, "pxelinux.cfg")
         os.mkdir(pxelinux_dir)
-        with open(os.path.join(pxelinux_dir, "default"), "w") as pxelinux_cfg:
-            pxelinux_cfg.write("DEFAULT install\n")
-            pxelinux_cfg.write("LABEL install\n")
-            pxelinux_cfg.write("  KERNEL casper/vmlinuz\n")
-            pxelinux_cfg.write("  INITRD casper/initrd\n")
-            if args.autoinstall_url:
-                autoinstall_args = f'"ds=nocloud-net;s={args.autoinstall_url}"'
-                pxelinux_cfg.write(
-                    "  APPEND %s url=%s autoinstall %s ---" % (Netboot_Args, args.url, autoinstall_args)
-                )
-            else:
-                pxelinux_cfg.write(
-                    "  APPEND %s url=%s ---" % (Netboot_Args, args.url)
-                )
-            if args.extra_args:
-                pxelinux_cfg.write(" %s" % (args.extra_args))
-            pxelinux_cfg.write("\n")
+        pxelinux_cfg = PxelinuxConfig()
+        setup_kernel_params(pxelinux_cfg)
+        with open(os.path.join(pxelinux_dir, "default"), "w") as pxelinux_f:
+            pxelinux_f.write(str(pxelinux_cfg))
+
     atexit.unregister(cleanup)
     logger.info("Netboot generation complete: %s" % (staging_dir))
