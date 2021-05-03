@@ -222,7 +222,7 @@ def setup_kernel_params(bootloader_cfg):
     if args.autoinstall_url:
         bootloader_cfg.add_kernel_params(
             [
-                "ds=nocloud-net;s=%s" % (args.autoinstall_url),
+                'autoinstall "ds=nocloud-net;s=%s"' % (args.autoinstall_url),
             ],
             install_only=True
         )
