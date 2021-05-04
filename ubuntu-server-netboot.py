@@ -32,12 +32,13 @@ Netboot_Args = ["root=/dev/ram0", "ramdisk_size=1500000", "ip=dhcp"]
 
 
 class UbuntuDistroInfoWithVersionSupport(distro_info.UbuntuDistroInfo):
-    '''
+    """
     The version() method wasn't supported by distro_info until
     version 0.23, which is newer than some supported releases
     ship (Ubuntu 18.04 currently has 0.18). Extend the class
     to provide our own copy for backwards compatibility.
-    '''
+    """
+
     def version(self, name, default=None):
         """Map codename or series to version"""
         for release in self._releases:
@@ -55,7 +56,7 @@ class ServerLiveIso:
         for line in iso_info_output.decode("utf-8").split("\n"):
             if not line.startswith("Volume id: "):
                 continue
-            vol_id = line[len("Volume id: "):]
+            vol_id = line[len("Volume id: ") :]
             break
         ubuntu_vol_id_re = re.compile(
             r"^Ubuntu-Server "
@@ -64,9 +65,7 @@ class ServerLiveIso:
         )
         m = ubuntu_vol_id_re.match(vol_id)
         if not m:
-            raise Exception(
-                "%s does not look like an Ubuntu Server ISO" % (self.path)
-            )
+            raise Exception("%s does not look like an Ubuntu Server ISO" % (self.path))
         self.architecture = m.group("arch")
         self.version = m.group("release")
         if m.group("lts"):
@@ -79,10 +78,12 @@ class ServerLiveIso:
             break
 
     def has_file(self, path):
-        for entry in subprocess.check_output(
-                ["isoinfo", "-J", "-f", "-i", self.path]
-        ).decode('utf-8').split('\n'):
-            if entry.lstrip('/') == path.lstrip('/'):
+        for entry in (
+            subprocess.check_output(["isoinfo", "-J", "-f", "-i", self.path])
+            .decode("utf-8")
+            .split("\n")
+        ):
+            if entry.lstrip("/") == path.lstrip("/"):
                 return True
         return False
 
@@ -90,9 +91,7 @@ class ServerLiveIso:
         # isoinfo reports success extracting a file even if it doesn't
         # exist, so let's check that it exists before proceeding
         if not self.has_file(path):
-            raise FileNotFoundError(
-                "%s not found on Ubuntu Server ISO" % (path)
-            )
+            raise FileNotFoundError("%s not found on Ubuntu Server ISO" % (path))
 
         with open(dest, "w") as outf:
             child = subprocess.Popen(
@@ -101,9 +100,7 @@ class ServerLiveIso:
             )
             child.communicate()
         if child.returncode != 0:
-            raise Exception(
-                "Error extracting %s from Ubuntu Server ISO" % (path)
-            )
+            raise Exception("Error extracting %s from Ubuntu Server ISO" % (path))
 
     def read_file(self, path):
         return subprocess.check_output(
@@ -115,6 +112,7 @@ class BootloaderConfig:
     """
     A base class that can be overridden for specific bootloaders
     """
+
     def add_kernel_params(self, params, install_only=False):
         new_cfg = ""
         for line in self.cfg.split("\n"):
@@ -130,24 +128,26 @@ class BootloaderConfig:
         self.cfg = new_cfg
 
     def __str__(self):
-        return(self.cfg)
+        return self.cfg
 
 
 class GrubConfig(BootloaderConfig):
-    '''
+    """
     This BootloaderConfig subclass for GRUB takes a seedcfg - the
     grub.cfg scraped from the ISO - and modifies it from there.
-    '''
+    """
+
     def __init__(self, seedcfg):
         self.cfg = seedcfg
 
 
 class PxelinuxConfig(BootloaderConfig):
-    '''
+    """
     This BootloaderConfig subclass for pxelinux needs to generate
     a starting config. Unlike for GRUB, there's no file to use as
     a seed on the ISO.
-    '''
+    """
+
     def __init__(self):
         self.cfg = """DEFAULT install
 LABEL install
@@ -216,15 +216,14 @@ def download_pxelinux(release, destdir):
 
 def setup_kernel_params(bootloader_cfg):
     bootloader_cfg.add_kernel_params(
-        Netboot_Args + ["url=%s" % (args.url)],
-        install_only=True
+        Netboot_Args + ["url=%s" % (args.url)], install_only=True
     )
     if args.autoinstall_url:
         bootloader_cfg.add_kernel_params(
             [
                 'autoinstall "ds=nocloud-net;s=%s"' % (args.autoinstall_url),
             ],
-            install_only=True
+            install_only=True,
         )
     if args.extra_args:
         bootloader_cfg.add_kernel_params(args.extra_args.split(" "))
@@ -311,9 +310,7 @@ if __name__ == "__main__":
         logger.info("No HWE boot files found, skipping")
         pass
 
-    grub_cfg_orig = iso.read_file(
-        os.path.join(os.sep, "boot", "grub", "grub.cfg")
-    )
+    grub_cfg_orig = iso.read_file(os.path.join(os.sep, "boot", "grub", "grub.cfg"))
     grub_cfg = GrubConfig(grub_cfg_orig.decode("utf-8"))
     setup_kernel_params(grub_cfg)
 
@@ -323,14 +320,10 @@ if __name__ == "__main__":
 
     if architecture == "amd64":
         local_files = [
-            (
-                os.path.join(os.sep, "usr", "lib", "PXELINUX", "pxelinux.0"),
-                "pxelinux"
-            ),
+            (os.path.join(os.sep, "usr", "lib", "PXELINUX", "pxelinux.0"), "pxelinux"),
             (
                 os.path.join(
-                    os.sep, "usr", "lib", "syslinux", "modules", "bios",
-                    "ldlinux.c32"
+                    os.sep, "usr", "lib", "syslinux", "modules", "bios", "ldlinux.c32"
                 ),
                 "syslinux-common",
             ),
