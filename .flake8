@@ -1,0 +1,10 @@
+[flake8]
+# Line break occurred before a binary operator (W503)
+# The recent research unearthed recommendations by Donald Knuth to break before
+# binary operators. flake8 will soon follow up the new recommendation. Until
+# the flake8 update, let's ignore the check.
+#
+# https://www.flake8rules.com/rules/W503.html
+extend-ignore = W503, E203
+
+max-line-length = 119
