@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+#
+from usn.usn import ubuntu_server_netboot
+
+
+if __name__ == "__main__":
+    ubuntu_server_netboot()
