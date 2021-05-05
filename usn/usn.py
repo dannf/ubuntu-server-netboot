@@ -56,7 +56,7 @@ def ubuntu_server_netboot():
     if args.iso:
         iso = ServerLiveIso(args.iso)
     else:
-        logger.info("Downloading %s" % (args.url))
+        logger.info("Downloading %s" % args.url)
         with urllib.request.urlopen(args.url) as response:
             with tempfile.NamedTemporaryFile(delete=False) as iso:
                 atexit.register(os.remove, iso.name)
@@ -114,16 +114,18 @@ def ubuntu_server_netboot():
             try:
                 shutil.copy(local_file, staging_dir)
             except FileNotFoundError as err:
-                sys.stderr.write("%s\n" % (err))
-                sys.stderr.write("Try installing %s.\n" % (pkg))
+                sys.stderr.write("%s\n" % err)
+                sys.stderr.write("Try installing %s.\n" % pkg)
                 sys.exit(1)
 
         pxelinux_dir = os.path.join(staging_dir, "pxelinux.cfg")
         os.mkdir(pxelinux_dir)
         pxelinux_cfg = PxelinuxConfig()
-        setup_kernel_params(pxelinux_cfg)
+        setup_kernel_params(
+            pxelinux_cfg, args.url, args.autoinstall_url, args.extra_args
+        )
         with open(os.path.join(pxelinux_dir, "default"), "w") as pxelinux_f:
             pxelinux_f.write(str(pxelinux_cfg))
 
     atexit.unregister(cleanup)
-    logger.info("Netboot generation complete: %s" % (staging_dir))
+    logger.info("Netboot generation complete: %s" % staging_dir)

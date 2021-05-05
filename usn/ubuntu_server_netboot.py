@@ -19,6 +19,7 @@ import os
 import re
 import shutil
 import subprocess
+import urllib.error
 import urllib.request
 
 
@@ -51,6 +52,7 @@ class ServerLiveIso:
         iso_info_output = subprocess.check_output(
             ["isoinfo", "-d", "-i", iso_path],
         )
+        vol_id = None
         for line in iso_info_output.decode("utf-8").split("\n"):
             if not line.startswith("Volume id: "):
                 continue
@@ -61,9 +63,12 @@ class ServerLiveIso:
             + "(?P<release>[0-9]{2}.[0-9]{2})(.[0-9]+)?"
             + "(?P<lts> LTS)? (?P<arch>.*)$"
         )
-        m = ubuntu_vol_id_re.match(vol_id)
+        if vol_id:
+            m = ubuntu_vol_id_re.match(vol_id)
+        else:
+            raise Exception("No Volume ID is found.")
         if not m:
-            raise Exception("%s does not look like an Ubuntu Server ISO" % (self.path))
+            raise Exception("%s does not look like an Ubuntu Server ISO" % self.path)
         self.architecture = m.group("arch")
         self.version = m.group("release")
         if m.group("lts"):
@@ -89,7 +94,7 @@ class ServerLiveIso:
         # isoinfo reports success extracting a file even if it doesn't
         # exist, so let's check that it exists before proceeding
         if not self.has_file(path):
-            raise FileNotFoundError("%s not found on Ubuntu Server ISO" % (path))
+            raise FileNotFoundError("%s not found on Ubuntu Server ISO" % path)
 
         with open(dest, "w") as outf:
             child = subprocess.Popen(
@@ -98,7 +103,7 @@ class ServerLiveIso:
             )
             child.communicate()
         if child.returncode != 0:
-            raise Exception("Error extracting %s from Ubuntu Server ISO" % (path))
+            raise Exception("Error extracting %s from Ubuntu Server ISO" % path)
 
     def read_file(self, path):
         return subprocess.check_output(
@@ -111,6 +116,9 @@ class BootloaderConfig:
     A base class that can be overridden for specific bootloaders
     """
 
+    def __init__(self):
+        self.cfg = None
+
     def add_kernel_params(self, params, install_only=False):
         new_cfg = ""
         for line in self.cfg.split("\n"):
@@ -118,11 +126,11 @@ class BootloaderConfig:
             if index != -1:
                 param_str = " ".join(params)
                 if install_only:
-                    replace = "%s ---" % (param_str)
+                    replace = "%s ---" % param_str
                 else:
-                    replace = "--- %s" % (param_str)
+                    replace = "--- %s" % param_str
                 line = line.replace("---", replace)
-            new_cfg += "%s\n" % (line)
+            new_cfg += "%s\n" % line
         self.cfg = new_cfg
 
     def __str__(self):
@@ -136,6 +144,7 @@ class GrubConfig(BootloaderConfig):
     """
 
     def __init__(self, seedcfg):
+        super().__init__()
         self.cfg = seedcfg
 
 
@@ -147,6 +156,7 @@ class PxelinuxConfig(BootloaderConfig):
     """
 
     def __init__(self):
+        super().__init__()
         self.cfg = """DEFAULT install
 LABEL install
   KERNEL casper/vmlinuz
@@ -166,16 +176,16 @@ def select_mirror(arch):
 
 def download_bootnet(release, architecture, destdir, logger):
     uefi_arch_abbrev = Ubuntu_Arch_to_Uefi_Arch_Abbrev[architecture]
-    for pocket in ["%s-updates" % (release), release]:
+    for pocket in ["%s-updates" % release, release]:
         url = "%s/dists/%s/main/uefi/grub2-%s/current/grubnet%s.efi.signed" % (
             select_mirror(architecture),
             pocket,
             architecture,
             uefi_arch_abbrev,
         )
-        outfile = os.path.join(destdir, "grubnet%s.efi" % (uefi_arch_abbrev))
+        outfile = os.path.join(destdir, "grubnet%s.efi" % uefi_arch_abbrev)
         try:
-            logger.info("Attempting to download %s" % (url))
+            logger.info("Attempting to download %s" % url)
             with urllib.request.urlopen(url) as response:
                 with open(outfile, "wb") as outf:
                     shutil.copyfileobj(response, outf)
@@ -183,11 +193,11 @@ def download_bootnet(release, architecture, destdir, logger):
         except urllib.error.HTTPError:
             # Assuming a 404
             continue
-    raise Exception("Could not download %s" % (url))
+    raise Exception("Could not download %s" % url)
 
 
 def download_pxelinux(release, destdir, logger):
-    for pocket in ["%s-updates" % (release), release]:
+    for pocket in ["%s-updates" % release, release]:
         mirror = select_mirror("amd64")
         url = (
             "%s/dists/%s/main/installer-amd64/" % (mirror, pocket)
@@ -195,7 +205,7 @@ def download_pxelinux(release, destdir, logger):
         )
         outfile = os.path.join(destdir, "pxelinux.0")
         try:
-            logger.info("Attempting to download %s" % (url))
+            logger.info("Attempting to download %s" % url)
             with urllib.request.urlopen(url) as response:
                 with open(outfile, "wb") as outf:
                     shutil.copyfileobj(response, outf)
@@ -203,17 +213,15 @@ def download_pxelinux(release, destdir, logger):
         except urllib.error.HTTPError:
             # Assuming a 404
             continue
-    raise Exception("Could not download %s" % (url))
+    raise Exception("Could not download %s" % url)
 
 
 def setup_kernel_params(bootloader_cfg, url, autoinstall_url, extra_args):
-    bootloader_cfg.add_kernel_params(
-        Netboot_Args + ["url=%s" % (url)], install_only=True
-    )
+    bootloader_cfg.add_kernel_params(Netboot_Args + ["url=%s" % url], install_only=True)
     if autoinstall_url:
         bootloader_cfg.add_kernel_params(
             [
-                'autoinstall "ds=nocloud-net;s=%s"' % (autoinstall_url),
+                'autoinstall "ds=nocloud-net;s=%s"' % autoinstall_url,
             ],
             install_only=True,
         )
@@ -222,5 +230,5 @@ def setup_kernel_params(bootloader_cfg, url, autoinstall_url, extra_args):
 
 
 def cleanup(directory, logger):
-    logger.info("Cleaning up %s" % (directory))
+    logger.info("Cleaning up %s" % directory)
     shutil.rmtree(directory)
