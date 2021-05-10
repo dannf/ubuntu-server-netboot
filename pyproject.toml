@@ -2,7 +2,7 @@
 name = "usn"
 version = "0.1.0"
 description = "This utility generates a netboot directory tree from an Ubuntu Server Live ISO image, an image based on the subiquity installer."
-authors = ["Taihsiang Ho (tai271828) <taihsiang.ho@canonical.com>"]
+authors = ["dann frazier <dannf@ubuntu.com>", "Taihsiang Ho (tai271828) <taihsiangho@ubuntu.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6.5"
