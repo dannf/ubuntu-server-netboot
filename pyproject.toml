@@ -8,6 +8,7 @@ authors = ["dann frazier <dannf@ubuntu.com>", "Taihsiang Ho (tai271828) <taihsia
 python = "^3.6.5"
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
 
 [tool.poetry.scripts]
 ubuntu-server-netboot = "usn.usn:ubuntu_server_netboot"

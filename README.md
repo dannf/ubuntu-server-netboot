@@ -47,7 +47,8 @@ Today `ubuntu-server-netboot` needs to run on Ubuntu or another Debian derivativ
 
 This script is tested with Ubuntu 18.04 ("bionic beaver") and above.
 
-## Contribution
+## Contribution and Development
 
 Please report bugs to [this github issue tracker](https://github.com/dannf/ubuntu-server-netboot/issues). The github templates including "Issue" and "Pull requests" are originally forked from [this "cookiecutter" templates for python](https://github.com/Lee-W/cookiecutter-python-template).
 
+Place `pytest` to cover the basic test sets.
