@@ -3,7 +3,7 @@ name = "ubuntu-server-netboot"
 packages = [
     {include = "usn"}
 ]
-version = "0.1.1rc4"
+version = "0.1.1"
 description = "This utility generates a netboot directory tree from an Ubuntu Server Live ISO image, an image based on the subiquity installer."
 authors = ["dann frazier <dannf@ubuntu.com>", "Taihsiang Ho (tai271828) <taihsiangho@ubuntu.com>"]
 license = "GPL-2.0-only"
