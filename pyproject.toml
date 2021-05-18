@@ -1,8 +1,23 @@
 [tool.poetry]
-name = "usn"
-version = "0.1.0"
+name = "ubuntu-server-netboot"
+packages = [
+    {include = "usn"}
+]
+version = "0.1.1rc4"
 description = "This utility generates a netboot directory tree from an Ubuntu Server Live ISO image, an image based on the subiquity installer."
 authors = ["dann frazier <dannf@ubuntu.com>", "Taihsiang Ho (tai271828) <taihsiangho@ubuntu.com>"]
+license = "GPL-2.0-only"
+readme = "README.md"
+classifiers = [
+    "Topic :: System :: Installation/Setup",
+    "Topic :: Utilities",
+    "Development Status :: 6 - Mature",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: POSIX",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+]
 
 [tool.poetry.dependencies]
 python = "^3.6.5"
