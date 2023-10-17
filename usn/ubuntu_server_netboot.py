@@ -28,6 +28,7 @@ Ubuntu_Arch_to_Uefi_Arch_Abbrev = {
     "amd64": "x64",
     "arm64": "aa64",
 }
+AutoInstall_Timeout = "1"
 
 
 class UbuntuDistroInfoWithVersionSupport(distro_info.UbuntuDistroInfo):
@@ -135,6 +136,20 @@ class BootloaderConfig:
         new_cfg = new_cfg.rstrip()
         self.cfg = new_cfg
 
+    def update_timeout(self, timeout):
+        new_cfg = ""
+        for line in self.cfg.split("\n"):
+            index = line.find("set timeout=")
+            if index != -1:
+                replace = "set timeout=%s" % timeout
+                pattern = r"^set timeout=\d+"
+                # Set the new timeout to the AutoInstall_Timeout
+                line = re.sub(pattern, replace, line)
+            new_cfg += "%s\n" % line
+        # Remove trailing newlines from file
+        new_cfg = new_cfg.rstrip()
+        self.cfg = new_cfg
+
     def __str__(self):
         return self.cfg
 
@@ -227,6 +242,8 @@ def setup_kernel_params(bootloader_cfg, url, autoinstall_url, extra_args):
             ],
             install_only=True,
         )
+        bootloader_cfg.update_timeout(AutoInstall_Timeout)
+
     if extra_args:
         bootloader_cfg.add_kernel_params(extra_args.split(" "))
 
