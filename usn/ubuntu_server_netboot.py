@@ -131,6 +131,8 @@ class BootloaderConfig:
                     replace = "--- %s" % param_str
                 line = line.replace("---", replace)
             new_cfg += "%s\n" % line
+        # Remove trailing newlines from file
+        new_cfg = new_cfg.rstrip()
         self.cfg = new_cfg
 
     def __str__(self):
