@@ -137,18 +137,9 @@ class BootloaderConfig:
         self.cfg = new_cfg
 
     def update_timeout(self, timeout):
-        new_cfg = ""
-        for line in self.cfg.split("\n"):
-            index = line.find("set timeout=")
-            if index != -1:
-                replace = "set timeout=%s" % timeout
-                pattern = r"^set timeout=\d+"
-                # Set the new timeout to the AutoInstall_Timeout
-                line = re.sub(pattern, replace, line)
-            new_cfg += "%s\n" % line
-        # Remove trailing newlines from file
-        new_cfg = new_cfg.rstrip()
-        self.cfg = new_cfg
+        pattern = r"^set timeout=\d+$"
+        replace = "set timeout=%s" % timeout
+        self.cfg = re.sub(pattern, replace, self.cfg, flags=re.MULTILINE)
 
     def __str__(self):
         return self.cfg
